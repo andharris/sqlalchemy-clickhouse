@@ -8,9 +8,12 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 import re
 import uuid
+import urllib3
 import requests
 from infi.clickhouse_orm.models import ModelBase
 from infi.clickhouse_orm.database import Database
+
+urllib3.disable_warnings()
 
 # PEP 249 module globals
 apilevel = '2.0'
@@ -100,7 +103,7 @@ def _send(self, data, settings=None, stream=False):
     if PY3 and isinstance(data, string_types):
         data = data.encode('utf-8')
     params = self._build_params(settings)
-    r = requests.post(self.db_url, params=params, data=data, stream=stream)
+    r = requests.post(self.db_url, params=params, data=data, stream=stream, verify=False)
     if r.status_code != 200:
         raise Exception(r.text)
     return r
@@ -114,16 +117,25 @@ def connect(*args, **kwargs):
     return Connection(*args, **kwargs)
 
 class Connection(Database):
-    """
-        These objects are small stateless factories for cursors, which do all the real work.
-    """
-    def __init__(self, db_name, db_url='http://localhost:8123/', username=None, password=None, readonly=False):
-        super(Connection, self).__init__(db_name, db_url, username, password, readonly)
+    """These objects are small stateless factories for cursors, which do all the real work."""
+
+    def __init__(self, db_name, db_url='localhost:8123/', username=None, password=None, readonly=False, https=False):
         self.db_name = db_name
-        self.db_url = db_url
+        if https is True:
+            self.db_url = 'https://' + db_url
+        else:
+            self.db_url = 'http://' + db_url
         self.username = username
         self.password = password
         self.readonly = readonly
+
+        super(Connection, self).__init__(
+            self.db_name,
+            self.db_url,
+            self.username,
+            self.password,
+            self.readonly
+        )
 
     def close(self):
         pass

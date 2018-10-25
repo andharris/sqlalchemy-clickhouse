@@ -187,7 +187,7 @@ class ClickHouseDialect(default.DefaultDialect):
 
     def create_connect_args(self, url):
         kwargs = {
-            'db_url': 'http://%s:%d/' % (url.host, url.port or 8123),
+            'db_url': '%s:%d/' % (url.host, url.port or 8123),
             'username': url.username,
             'password': url.password,
         }
@@ -226,14 +226,14 @@ class ClickHouseDialect(default.DefaultDialect):
             if r.type.startswith("AggregateFunction"):
                 # Extract type information from a column
                 # using AggregateFunction
-                # the type from clickhouse will be 
+                # the type from clickhouse will be
                 # AggregateFunction(sum, Int64) for an Int64 type
                 # remove first 24 chars and remove the last one to get Int64
                 col_type = r.type[23:-1]
-            else:    
+            else:
                 # Take out the more detailed type information
                 # e.g. 'map<int,int>' -> 'map'
-                #      'decimal(10,1)' -> decimal                
+                #      'decimal(10,1)' -> decimal
                 col_type = re.search(r'^\w+', r.type).group(0)
             try:
                 coltype = ischema_names[col_type]
