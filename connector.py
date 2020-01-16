@@ -103,7 +103,7 @@ def _send(self, data, settings=None, stream=False):
     if PY3 and isinstance(data, string_types):
         data = data.encode('utf-8')
     params = self._build_params(settings)
-    r = requests.post(self.db_url, params=params, data=data, stream=stream, verify=False)
+    r = self.request_session.post(self.db_url, params=params, data=data, stream=stream, verify=False)
     if r.status_code != 200:
         raise Exception(r.text)
     return r
